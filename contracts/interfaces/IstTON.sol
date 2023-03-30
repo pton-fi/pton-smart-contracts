@@ -5,15 +5,15 @@ import "@openzeppelin/contracts/token/ERC20/IERC20.sol";
 pragma solidity ^0.8.4;
 
 /**
- * @title  Interface for StakedTON token
- * @notice StakedTON token is fully compliant with ERC20 standard with a few extensions:
+ * @title  Interface for stTON token
+ * @notice stTON token is fully compliant with ERC20 standard with a few extensions:
  *         It uses ERC20Permit extension from OpenZeppelin
  *         (https://docs.openzeppelin.com/contracts/4.x/api/token/erc20#ERC20Permit)
  *         It also rebases itself when an oracle notifies dividends from TON network
  *         The staking rewards distribution is linear over specified period,
  *         overlapping periods are summed up to the last period
  */
-interface IStakedTON {
+interface IstTON {
     struct RewardsInfo {
         int128 rewardRate;
         uint64 startOfRewardPeriod;
@@ -39,14 +39,29 @@ interface IStakedTON {
     error InvalidData();
 
     /**
+     * @notice Revert reason for minting with zeroed salt
+     */
+    error InvalidSalt();
+
+    /**
+     * @notice Revert reason for minting with signature parameter that was already successfully used once
+     */
+    error AlreadyUsedSignature();
+
+    /**
+     * @notice Revert reason for minting without validator's consensus
+     */
+    error ValidationFailed();
+
+    /**
      * @notice Revert reason for too low reward period notified by the oracle
      */
     error BelowMinRewardPeriod();
 
     /**
-     * @notice Revert reason for reinvesting of zero amount
+     * @notice Revert reason for too high reward delta notified by the oracle
      */
-    error NothingToReinvest();
+    error AboveMaxRewardDelta();
 
     /**
      * @notice Emitted when rewards are notified by an oracle monitoring TON network
@@ -61,6 +76,13 @@ interface IStakedTON {
      * @param data Metadata for bridge, must contain address in TON, which will receive TONs
      */
     event Burned(address indexed user, uint256 amount, bytes data);
+
+    /**
+     * @notice Emitted when tokens are successfully minted using validator's signatures
+     * @param to Address of receiver taken from tx message in TON network
+     * @param salt Salt signature identifying underlying transaction in TON network
+     */
+    event Minted(address to, bytes32 salt);
 
     /**
      * @notice Calculates minimal transferrable underlying amount
@@ -78,21 +100,35 @@ interface IStakedTON {
     /**
      * @notice Minting function that is accessible only to validators
      *         Converts underlying input amount to shares and checks it to be non-zero
-     *         Then these shares are wrapped to classic ERC20 pTON tokens
      *         Can be paused
      * @param to Address for tokens to be minted for
      * @param amountUnderlying Input amount of TON tokens that are received in the TON network
+     * @param salt Unique identifier from transaction in TON network
+     * @param signature Array of signed encoded to+amountUnderlying+salt signatures from multiple validators
      */
-    function mint(address to, uint256 amountUnderlying) external;
+    function mint(
+        address to,
+        uint256 amountUnderlying,
+        bytes32 salt,
+        bytes[] memory signature
+    ) external;
 
     /**
      * @notice Minting function that is accessible only to validators
      *         Converts underlying input amount to shares and checks it to be non-zero
+     *         Then these shares are wrapped to classic ERC20 pTON tokens
      *         Can be paused
      * @param to Address for tokens to be minted for
      * @param amountUnderlying Input amount of TON tokens that are received in the TON network
+     * @param salt Unique identifier from transaction in TON network
+     * @param signature Array of signed encoded to+amountUnderlying+salt signatures from multiple validators
      */
-    function mintWrapped(address to, uint256 amountUnderlying) external;
+    function mintWrapped(
+        address to,
+        uint256 amountUnderlying,
+        bytes32 salt,
+        bytes[] memory signature
+    ) external;
 
     /**
      * @notice Burning function to emit Burned() event which is monitored by validators

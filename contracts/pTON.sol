@@ -8,7 +8,7 @@ pragma solidity 0.8.17;
 
 /*
  * @title  pTON ERC20 token
- * @notice PooledTON wraps sTON token, which is a rebasing token to receive staking rewards from TON,
+ * @notice pTON wraps sTON token, which is a rebasing token to receive staking rewards from TON,
  *         to a classic ERC20 token via minting shares
  *         Vault is built on OpenZeppelin's ERC4626 Vault extension
  *         https://docs.openzeppelin.com/contracts/4.x/api/token/erc20#ERC4626
@@ -16,7 +16,7 @@ pragma solidity 0.8.17;
  *         https://docs.openzeppelin.com/contracts/4.x/api/token/erc20#ERC20Permit
  *         https://docs.openzeppelin.com/contracts/4.x/utilities#multicall
  */
-contract PooledTON is ERC4626, ERC20Permit, Multicall {
+contract pTON is ERC4626, ERC20Permit, Multicall {
     constructor(
         string memory name_,
         string memory symbol_,

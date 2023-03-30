@@ -1,11 +1,35 @@
 import { expect } from "chai";
 import { prepareEnv } from "./prepare";
-const { getSigners } = ethers;
 const { parseEther } = ethers.utils;
 const { loadFixture, time } = require("@nomicfoundation/hardhat-network-helpers");
 
-describe("Testing stTON pausable functions", function () {
-    it("Pausing test", async () => {
+const name = "pTON";
+const symbol = "pTON";
+const decimals = 9;
+
+describe("Testing pTON deployment", function () {
+    it("Deploy test", async () => {
+        const {
+            stton,
+            pton,
+            owner,
+            alice,
+            bob,
+            oracle,
+            validator1,
+            validator2,
+            validator3,
+            pauser,
+        } = await loadFixture(prepareEnv);
+
+        const decimals = await stton.decimals();
+        expect(await pton.name()).to.equal(name);
+        expect(await pton.symbol()).to.equal(symbol);
+        expect(await pton.decimals()).to.equal(decimals);
+        expect(await pton.asset()).to.equal(stton.address);
+    });
+
+    it("Wrapping test", async () => {
         const {
             stton,
             pton,
@@ -22,7 +46,8 @@ describe("Testing stTON pausable functions", function () {
         const amountA = parseEther("0.001");
         const amountR = amountA.div(10);
         const one_day = 86400;
-        const pauserRole = await stton.PAUSER_ROLE();
+        const decimals = await pton.decimals();
+
         const chainId = 31337;
         const name = await stton.name();
         const version = "1";
@@ -76,18 +101,7 @@ describe("Testing stTON pausable functions", function () {
             }
         );
         const sigA = [sigA1, sigA2, sigA3];
-        await stton.connect(alice).mint(alice.address, amountA, salt1, sigA);
-
-        await stton.connect(oracle).updateRewards(amountR, one_day);
-        await time.increase(one_day);
-        await stton.connect(alice).transfer(bob.address, amountR);
-
-        const lowerOwnerAddress = owner.address.toString().toLowerCase();
-        await expect(stton.connect(owner).setPause(true)).to.be.revertedWith(
-            `AccessControl: account ${lowerOwnerAddress} is missing role ${pauserRole}`
-        );
-
-        await stton.connect(pauser).setPause(true);
+        await stton.connect(bob).mint(alice.address, amountA, salt1, sigA);
 
         const sigB1 = await validator1._signTypedData(
             { name, version, chainId, verifyingContract },
@@ -135,25 +149,34 @@ describe("Testing stTON pausable functions", function () {
             }
         );
         const sigB = [sigB1, sigB2, sigB3];
-
-        await expect(stton.connect(bob).mint(bob.address, amountA, salt2, sigB)).to.be.revertedWith(
-            "Pausable: paused"
-        );
-
-        await expect(stton.connect(oracle).updateRewards(amountR, one_day)).to.be.revertedWith(
-            "Pausable: paused"
-        );
-
-        await expect(stton.connect(alice).transfer(bob.address, amountR)).to.be.revertedWith(
-            "Pausable: paused"
-        );
-
-        await expect(stton.connect(pauser).setPause(true)).to.be.revertedWith("Pausable: paused");
-
-        await stton.connect(pauser).setPause(false);
-        await stton.connect(bob).mint(bob.address, amountA, salt2, sigB);
+        await stton.connect(alice).mint(bob.address, amountA, salt2, sigB);
+        await stton.connect(alice).approve(pton.address, amountA);
+        await pton.connect(alice).deposit(amountA, alice.address);
+        expect(await pton.balanceOf(alice.address)).to.equal(amountA);
+        expect(await pton.totalSupply()).to.equal(amountA);
+        expect(await pton.convertToAssets(10 ** decimals)).to.equal(amountA.div(10 ** 6));
         await stton.connect(oracle).updateRewards(amountR, one_day);
         await time.increase(one_day);
-        await stton.connect(alice).transfer(bob.address, amountR);
+
+        expect(await pton.balanceOf(alice.address)).to.equal(amountA);
+        expect(await pton.totalSupply()).to.equal(amountA);
+        expect(await pton.convertToAssets(10 ** decimals)).to.equal(
+            amountA
+                .add(amountR.div(2))
+                .sub(1)
+                .div(10 ** 6)
+        );
+        await stton.connect(bob).approve(pton.address, await stton.balanceOf(bob.address));
+        await pton.connect(bob).deposit(await stton.balanceOf(bob.address), bob.address);
+        expect(await pton.balanceOf(alice.address)).to.equal(amountA);
+        expect(await pton.balanceOf(bob.address)).to.equal(amountA);
+        expect(await pton.totalSupply()).to.equal(amountA.mul(2));
+
+        await stton.connect(oracle).updateRewards(amountR, one_day);
+        await time.increase(one_day);
+        await pton.connect(alice).redeem(amountA, alice.address, alice.address);
+        expect((await stton.balanceOf(alice.address)).div(10).mul(10)).to.equal(
+            (await stton.balanceOf(pton.address)).div(10).mul(10)
+        );
     });
 });

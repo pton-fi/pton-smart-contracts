@@ -25,7 +25,7 @@ module.exports = {
             },
         },
         ethereumMainnet: {
-            url: "https://rinkeby.infura.io/v3/" + config.infuraIdProject,
+            url: "https://rpc.ankr.com/eth",
             accounts: config.mainnetAccounts,
         },
         ropsten: {
@@ -43,8 +43,8 @@ module.exports = {
         goerli: {
             url: "https://goerli.infura.io/v3/" + config.infuraIdProject,
             accounts: config.testnetAccounts,
-            gas: 4100000,
-            gasPrice: 80000000000,
+            // gas: 12100000,
+            // gasPrice: 130000000000,
         },
         bscMainnet: {
             url: "https://bsc-dataseed3.binance.org",

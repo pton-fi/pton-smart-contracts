@@ -9,7 +9,7 @@ import "@openzeppelin/contracts-upgradeable/utils/cryptography/ECDSAUpgradeable.
 import "@openzeppelin/contracts-upgradeable/utils/cryptography/EIP712Upgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/CountersUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/proxy/utils/Initializable.sol";
-import "./ERC20Upgradeable.sol";
+import "./ERC20FlashMintUpgradeable.sol";
 
 /**
  * @dev Implementation of the ERC20 Permit extension allowing approvals to be made via signatures, as defined in
@@ -25,7 +25,7 @@ import "./ERC20Upgradeable.sol";
  */
 abstract contract ERC20PermitUpgradeable is
     Initializable,
-    ERC20Upgradeable,
+    ERC20FlashMintUpgradeable,
     IERC20PermitUpgradeable,
     EIP712Upgradeable
 {
@@ -108,6 +108,14 @@ abstract contract ERC20PermitUpgradeable is
         CountersUpgradeable.Counter storage nonce = _nonces[owner];
         current = nonce.current();
         nonce.increment();
+    }
+
+    function _EIP712NameHash() internal pure override returns (bytes32) {
+        return keccak256(bytes("stTON"));
+    }
+
+    function _EIP712VersionHash() internal pure override returns (bytes32) {
+        return keccak256(bytes("1"));
     }
 
     /**

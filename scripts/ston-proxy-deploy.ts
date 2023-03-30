@@ -1,11 +1,11 @@
-import { ethers, tracer } from "hardhat";
+import { ethers } from "hardhat";
 import { deployAndVerify } from "./utils";
 const { getContractAt } = ethers;
 
 const config = require("../config.js");
 const utils = require("./utils");
 
-const sTonImplementation = "0x8B13324F5e5eE2b6c3507FA4242867f6993547e3";
+const stTonImplementation = "0x21Bc76e5c88f4182677da0BbB07F57a1Cd18F6c6";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
@@ -13,10 +13,11 @@ async function main() {
     const networkName = hre.network.name;
 
     const Proxy = await ethers.getContractFactory("ERC1967Proxy");
-    const proxy = await Proxy.deploy(sTonImplementation, "0x");
+    const proxy = await Proxy.deploy(stTonImplementation, "0x");
     await proxy.deployed();
     if (networkName !== "hardhat" && networkName !== "localhost") {
-        console.log("Verifying sTON...");
+        console.log("Verifying stTON proxy...");
+        await proxy.deployTransaction.wait(2);
         try {
             await hre.run("verify:verify", {
                 address: proxy.address,
@@ -28,7 +29,7 @@ async function main() {
             console.log("Error message", error.message);
         }
     }
-    console.log("Staked TON proxy address:", proxy.address);
+    console.log("stTON proxy address:", proxy.address);
 }
 
 main()
