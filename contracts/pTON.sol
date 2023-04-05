@@ -21,7 +21,9 @@ contract pTON is ERC4626, ERC20Permit, Multicall {
         string memory name_,
         string memory symbol_,
         IERC20 stTONaddress_
-    ) ERC20(name_, symbol_) ERC20Permit(name_) ERC4626(stTONaddress_) {}
+    ) ERC20(name_, symbol_) ERC20Permit(name_) ERC4626(stTONaddress_) {
+        if (address(stTONaddress_) == address(0)) revert("Zero address");
+    }
 
     function decimals() public view override(ERC4626, ERC20) returns (uint8) {
         return ERC4626.decimals();

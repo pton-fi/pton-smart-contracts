@@ -190,10 +190,11 @@ contract stTON is
     function flashLoan(
         IERC3156FlashBorrowerUpgradeable receiver,
         address token,
-        uint256 amount,
+        uint256 amountUnderlying,
         bytes calldata data
     ) public virtual override onlyRole(LIQUIDATOR_ROLE)  returns (bool) {
-        super.flashLoan(receiver, token, amount, data);
+        uint256 shares = _validateShares(amountUnderlying);
+        return super.flashLoan(receiver, token, shares, data);
     }
 
     function _burn(address from, uint256 amountUnderlying, bytes memory data) internal {
