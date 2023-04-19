@@ -1,9 +1,8 @@
 import { ethers } from "hardhat";
-import { deployAndVerify } from "./utils";
+import { deployAndVerify } from "../utils";
 const { getContractAt } = ethers;
 
-const config = require("../config.js");
-const utils = require("./utils");
+const utils = require("../utils");
 
 const oracleAddress = "0x1B2cB8A3494f79Be22C2E60A936F96f6863C9818";
 const validator1Address = "0x1b855415179009e56946fDbC958e077966cF8650";
@@ -12,8 +11,8 @@ const validator3Address = "0x88903de04A8BBB623f25252849C543B8a0b7a5a5";
 const pauserAddress = "0xDBB09C654Ac72D794BAFBfE0bDad568582dB8e5e";
 
 const stTonImplementation = "0x21Bc76e5c88f4182677da0BbB07F57a1Cd18F6c6";
-const stTonProxy = "0x0fB2E7c2d2754476aAa84762e44d3EE328AA9Ea2";
-const pTonImplementation = "0x6256aB9480B84Cf70d75773121C0523F87B0D588";
+const stTonProxy = "0x21827cB7Df5b9a6b5b7323B6Ce2f0338f9ccA86E";
+const pTonImplementation = "0xd00C63F5D667AD1A153Bbd278Ad19a52A4fAb934";
 
 async function main() {
     const [deployer] = await ethers.getSigners();

@@ -1,8 +1,6 @@
 import { ethers, upgrades } from "hardhat";
 const { getContractAt } = ethers;
 
-const config = require("../config.js");
-
 const sTonImplPrevious = "0x21Bc76e5c88f4182677da0BbB07F57a1Cd18F6c6";
 const sTonImplLatest = "0x21Bc76e5c88f4182677da0BbB07F57a1Cd18F6c6";
 

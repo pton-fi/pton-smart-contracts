@@ -9,6 +9,7 @@ import "hardhat-gas-reporter";
 import "hardhat-abi-exporter";
 import "hardhat-spdx-license-identifier";
 import "hardhat-tracer";
+import "hardhat-storage-layout";
 import "solidity-docgen";
 
 const config = require("./config.js");

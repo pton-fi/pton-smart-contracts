@@ -2,26 +2,21 @@ import { ethers } from "hardhat";
 import { deployAndVerify } from "./utils";
 const { getContractAt } = ethers;
 
-const config = require("../config.js");
-const utils = require("./utils");
+const utils = require("../utils");
+
+const impl_address = "0x41f96A35E6163C97B85227471337A5b1ddb3271E";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
-    console.log("Deployer address:", deployer.address);
     const networkName = hre.network.name;
 
-    const stTonProxy = "0x0fB2E7c2d2754476aAa84762e44d3EE328AA9Ea2";
-
-    const PTON = await ethers.getContractFactory("pTON");
-    const pTon = await PTON.deploy("pTON", "pTON", stTonProxy);
-    await pTon.deployed();
-
     if (networkName !== "hardhat" && networkName !== "localhost") {
-        console.log("Verifying pTON...");
-        await pTon.deployTransaction.wait(2);
+        console.log("Verifying...");
         try {
             await hre.run("verify:verify", {
-                address: pTon.address,
+                address: impl_address,
+                constructorArguments: [
+                ]
             });
             console.log("Contract is Verified");
         } catch (error: any) {
@@ -30,7 +25,7 @@ async function main() {
             console.log("Error message", error.message);
         }
     }
-    console.log("pTON address:", pTon.address);
+    console.log("Verified address:", impl_address);
 }
 
 main()

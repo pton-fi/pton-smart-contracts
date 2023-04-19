@@ -1,26 +1,26 @@
-import { ethers } from "hardhat";
-import { deployAndVerify } from "./utils";
+import { ethers, tracer } from "hardhat";
+import { deployAndVerify } from "../utils";
 const { getContractAt } = ethers;
 
 const config = require("../config.js");
 const utils = require("./utils");
 
-const stTonImplementation = "0x21Bc76e5c88f4182677da0BbB07F57a1Cd18F6c6";
 
 async function main() {
     const [deployer] = await ethers.getSigners();
     console.log("Deployer address:", deployer.address);
     const networkName = hre.network.name;
 
-    const Proxy = await ethers.getContractFactory("ERC1967Proxy");
-    const proxy = await Proxy.deploy(stTonImplementation, "0x");
-    await proxy.deployed();
+    const Impl = await ethers.getContractFactory("stTON");
+    const impl = await Impl.deploy();
+    await impl.deployed();
+
     if (networkName !== "hardhat" && networkName !== "localhost") {
-        console.log("Verifying stTON proxy...");
-        await proxy.deployTransaction.wait(2);
+        console.log("Verifying stTON...");
+        await impl.deployTransaction.wait(2);
         try {
             await hre.run("verify:verify", {
-                address: proxy.address,
+                address: impl.address,
             });
             console.log("Contract is Verified");
         } catch (error: any) {
@@ -29,7 +29,7 @@ async function main() {
             console.log("Error message", error.message);
         }
     }
-    console.log("stTON proxy address:", proxy.address);
+    console.log("stTON implementation address:", impl.address);
 }
 
 main()

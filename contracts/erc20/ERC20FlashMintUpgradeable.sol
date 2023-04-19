@@ -27,7 +27,7 @@ abstract contract ERC20FlashMintUpgradeable is ERC20Upgradeable, IERC3156FlashLe
      * @return The amount of token that can be loaned.
      */
     function maxFlashLoan(address token) public view virtual override returns (uint256) {
-        return token == address(this) ? type(uint256).max - totalSupply() : 0;
+        return token == address(this) ? type(uint256).max - ERC20Upgradeable.totalSupply() : 0;
     }
 
     /**
@@ -108,4 +108,12 @@ abstract contract ERC20FlashMintUpgradeable is ERC20Upgradeable, IERC3156FlashLe
         }
         return true;
     }
+
+
+    /**
+     * @dev This empty reserved space is put in place to allow future versions to add new
+     * variables without shifting down storage in the inheritance chain.
+     * See https://docs.openzeppelin.com/contracts/4.x/upgradeable#storage_gaps
+     */
+    uint256[20] private __gap;
 }

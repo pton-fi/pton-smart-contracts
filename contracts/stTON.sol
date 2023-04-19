@@ -5,6 +5,7 @@ pragma solidity 0.8.17;
 import "@openzeppelin/contracts-upgradeable/proxy/utils/UUPSUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/access/AccessControlEnumerableUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/security/PausableUpgradeable.sol";
+import "@openzeppelin/contracts-upgradeable/utils/math/MathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SignedMathUpgradeable.sol";
 import "@openzeppelin/contracts-upgradeable/utils/math/SafeCastUpgradeable.sol";
 import "@openzeppelin/contracts/interfaces/IERC4626.sol";
@@ -77,8 +78,11 @@ contract stTON is
 
     function balanceOf(address account) public view override returns (uint256) {
         return
-            (ERC20Upgradeable.balanceOf(account) * _totalUnderlying()) /
-            ERC20Upgradeable.totalSupply();
+            MathUpgradeable.mulDiv(
+                ERC20Upgradeable.balanceOf(account),
+                _totalUnderlying(),
+                ERC20Upgradeable.totalSupply()
+            );
     }
 
     function decimals() public pure override returns (uint8) {
@@ -156,7 +160,6 @@ contract stTON is
         _validateSignature(to, amountUnderlying, salt, signature);
 
         _mint(to, amountUnderlying, shares, salt);
-        _updateUnderlying(amountUnderlying.toInt256());
     }
 
     function mintWrapped(
@@ -170,7 +173,6 @@ contract stTON is
         _validateSignature(to, amountUnderlying, salt, signature);
 
         _mint(address(this), amountUnderlying, shares, salt);
-        _updateUnderlying(amountUnderlying.toInt256());
 
         address wrapper = pTON;
         _approve(address(this), wrapper, amountUnderlying);
@@ -192,9 +194,12 @@ contract stTON is
         address token,
         uint256 amountUnderlying,
         bytes calldata data
-    ) public virtual override onlyRole(LIQUIDATOR_ROLE)  returns (bool) {
+    ) public virtual override onlyRole(LIQUIDATOR_ROLE) returns (bool) {
         uint256 shares = _validateShares(amountUnderlying);
-        return super.flashLoan(receiver, token, shares, data);
+        _updateUnderlying(amountUnderlying.toInt256());
+        bool res = super.flashLoan(receiver, token, shares, data);
+        _updateUnderlying(-amountUnderlying.toInt256());
+        return res;
     }
 
     function _burn(address from, uint256 amountUnderlying, bytes memory data) internal {
@@ -207,6 +212,7 @@ contract stTON is
 
     function _mint(address to, uint256 amountUnderlying, uint256 shares, bytes32 salt) internal {
         _mint(to, shares);
+        _updateUnderlying(amountUnderlying.toInt256());
         emit Minted(to, salt);
         emit Transfer(address(0), to, amountUnderlying);
     }
@@ -230,7 +236,7 @@ contract stTON is
     }
 
     function _sharesToUnderlying(uint256 shares) internal view returns (uint256) {
-        return (shares * _totalUnderlying()) / ERC20Upgradeable.totalSupply();
+        return MathUpgradeable.mulDiv(shares, _totalUnderlying(), ERC20Upgradeable.totalSupply());
     }
 
     function _totalUnderlying() internal view returns (uint256) {
@@ -242,7 +248,7 @@ contract stTON is
         return
             currentSupply == 0
                 ? amountUnderlying
-                : (amountUnderlying * currentSupply) / _totalUnderlying();
+                : MathUpgradeable.mulDiv(amountUnderlying, currentSupply, _totalUnderlying());
     }
 
     function _transfer(
@@ -296,17 +302,12 @@ contract stTON is
         if (!validateData(data)) revert InvalidData();
     }
 
-    function _validateInput(
-        address to,
-        bytes32 salt
-    ) internal pure {
+    function _validateInput(address to, bytes32 salt) internal pure {
         if (to == address(0)) revert ZeroAddress();
         if (salt == bytes32(0)) revert InvalidSalt();
     }
 
-    function _validateShares(
-        uint256 amountUnderlying
-    ) internal view returns (uint256) {
+    function _validateShares(uint256 amountUnderlying) internal view returns (uint256) {
         uint256 shares = _underlyingToShares(amountUnderlying);
         if (shares == 0) revert ZeroShares();
         return shares;
