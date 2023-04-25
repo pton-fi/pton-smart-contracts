@@ -44,7 +44,7 @@ describe("Testing pTON deployment", function () {
         } = await loadFixture(prepareEnv);
 
         const amountA = parseEther("0.001");
-        const amountR = amountA.div(10);
+        const amountR = amountA.div(1000);
         const one_day = 86400;
         const decimals = await pton.decimals();
 

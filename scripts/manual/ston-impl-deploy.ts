@@ -2,8 +2,8 @@ import { ethers, tracer } from "hardhat";
 import { deployAndVerify } from "../utils";
 const { getContractAt } = ethers;
 
-const config = require("../config.js");
-const utils = require("./utils");
+const config = require("../../config.js");
+const utils = require("../utils");
 
 
 async function main() {

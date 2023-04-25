@@ -21,11 +21,11 @@ contract stTON is
     Multicall,
     IstTON
 {
-    using SignedMathUpgradeable for int256;
+    using SignedMathUpgradeable for int128;
     using SafeCastUpgradeable for *;
 
     uint64 internal constant MIN_REWARD_PERIOD = 12 hours;
-    uint256 internal constant MAX_REWARD_DELTA = 1e15;
+    uint256 internal constant MAX_REWARD_NOMINATOR = 15e8;
     int256 internal constant FACTOR = 1e12;
     uint256 internal constant SUPPORTED_DATA_LENGTH_FULL = 36;
     uint256 internal constant SUPPORTED_DATA_LENGTH_EASY = 48;
@@ -183,9 +183,8 @@ contract stTON is
         int256 rewardsDelta,
         uint64 rewardPeriod
     ) external whenNotPaused onlyRole(ORACLE_ROLE) {
-        if (rewardPeriod < MIN_REWARD_PERIOD) revert BelowMinRewardPeriod();
-        if (rewardsDelta.abs() > MAX_REWARD_DELTA) revert AboveMaxRewardDelta();
         RewardsInfo memory updatedRewardsInfo = _updateRewards(rewardsDelta, rewardPeriod);
+        _validateRewards(rewardPeriod, updatedRewardsInfo.rewardRate);
         emit Rewarded(updatedRewardsInfo);
     }
 
@@ -305,6 +304,13 @@ contract stTON is
     function _validateInput(address to, bytes32 salt) internal pure {
         if (to == address(0)) revert ZeroAddress();
         if (salt == bytes32(0)) revert InvalidSalt();
+    }
+
+    function _validateRewards(uint64 rewardPeriod, int128 rewardRate) internal view {
+        if (rewardPeriod < MIN_REWARD_PERIOD) revert BelowMinRewardPeriod();
+        uint256 maxRate = _totalUnderlying() * MAX_REWARD_NOMINATOR / MIN_REWARD_PERIOD;
+        if (rewardRate.abs() > maxRate)
+            revert AboveMaxRewardDelta();
     }
 
     function _validateShares(uint256 amountUnderlying) internal view returns (uint256) {

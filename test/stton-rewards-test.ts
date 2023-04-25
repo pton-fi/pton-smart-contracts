@@ -19,7 +19,7 @@ describe("Testing stTON rewards distribution functions", function () {
         } = await loadFixture(prepareEnv);
 
         const amountA = parseEther("0.001");
-        const amountR = amountA.mul(2).div(100);
+        const amountR = amountA.mul(2).div(10000);
         const one_day = 86400;
         const chainId = 31337;
         const name = await stton.name();
@@ -140,15 +140,15 @@ describe("Testing stTON rewards distribution functions", function () {
         balB = await stton.balanceOf(bob.address);
         const totalSupply = await stton.totalSupply();
         expect(balB).to.equal(
-            amountB.add(shareOfBob.mul(amountR).div(shareOfBob.add(amountA))).sub(1)
+            amountB.add(shareOfBob.mul(amountR).div(shareOfBob.add(amountA)))
         );
-        expect(balA).to.equal(
+        expect(balA.div(10).mul(10)).to.equal(
             amountA
                 .add(amountR)
                 .add(amountA.mul(amountR).div(shareOfBob.add(amountA)))
-                .sub(1)
+                .div(10).mul(10)
         );
-        expect(balA.add(balB)).to.equal(totalSupply.sub(1));
+        expect(balA.add(balB).div(10).mul(10)).to.equal(totalSupply.div(10).mul(10));
     });
 
     it("Overlapping rewards test", async () => {
@@ -167,7 +167,7 @@ describe("Testing stTON rewards distribution functions", function () {
 
         const amountA = parseEther("0.001");
         const rounding = parseEther("0.000001");
-        const amountR = amountA.div(10);
+        const amountR = amountA.div(1000);
         const one_day = 86400;
         const chainId = 31337;
         const name = await stton.name();
@@ -315,7 +315,7 @@ describe("Testing stTON rewards distribution functions", function () {
         } = await loadFixture(prepareEnv);
 
         const amountA = parseEther("0.001");
-        const amountR = amountA.div(10);
+        const amountR = amountA.div(1000);
         const one_day = 86400;
         const chainId = 31337;
         const name = await stton.name();

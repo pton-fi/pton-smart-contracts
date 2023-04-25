@@ -24,7 +24,7 @@ describe("Testing stTON ERC20 functions", function () {
         const burnBal = "burn(bytes)";
 
         const amountUnderlyingToMint = 1000000;
-        const amountRewardsToDistribute = 100000;
+        const amountRewardsToDistribute = 100;
         const chainId = 31337;
         const name = await stton.name();
         const version = "1";
@@ -178,7 +178,7 @@ describe("Testing stTON ERC20 functions", function () {
         } = await loadFixture(prepareEnv);
 
         const amountA = parseEther("0.001");
-        const amountR = amountA.div(10);
+        const amountR = amountA.div(1000);
         const one_day = 86400;
         const chainId = 31337;
         const name = await stton.name();
